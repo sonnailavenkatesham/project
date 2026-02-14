@@ -1,4 +1,4 @@
-- name: Install Jenkins (Clean Install)
+- name: Install Jenkins (Guaranteed Fix)
   hosts: localhost
   connection: local
   become: yes
@@ -10,23 +10,16 @@
         state: present
         update_cache: yes
 
-    - name: Create keyrings folder
-      file:
-        path: /usr/share/keyrings
-        state: directory
-        mode: '0755'
+    - name: Add Jenkins GPG key (legacy but stable)
+      shell: |
+        curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | tee \
+        /etc/apt/trusted.gpg.d/jenkins.asc > /dev/null
 
-    - name: Download Jenkins key
-      get_url:
-        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-        dest: /usr/share/keyrings/jenkins-keyring.asc
-        mode: '0644'
-
-    - name: Add Jenkins repo (signed)
-      apt_repository:
-        repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
-        filename: jenkins
-        state: present
+    - name: Add Jenkins repo
+      copy:
+        dest: /etc/apt/sources.list.d/jenkins.list
+        content: |
+          deb https://pkg.jenkins.io/debian-stable binary/
 
     - name: Update apt
       apt:
