@@ -1,0 +1,53 @@
+# ========================
+# Terraform
+# ========================
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# Terraform variable files (sensitive)
+*.tfvars
+*.tfvars.json
+
+# ========================
+# Jenkins
+# ========================
+target/
+*.log
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.venv/
+
+# ========================
+# AWS
+# ========================
+.aws/
+credentials
+
+# ========================
+# IDE / Editor
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db

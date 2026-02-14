@@ -1,0 +1,23 @@
+resource "aws_instance" "server" {
+  count           = length(var.servers)
+  ami             = var.ami_id
+  instance_type   = var.instance_type
+  security_groups = [aws_security_group.all_TCP.name]
+  key_name        = "terrafrom"
+  user_data = var.servers[count.index]=="jenkins"? file("server.sh"):""
+  tags = {
+    Name = "${var.project}-${var.ENV}-${var.servers[count.index]}"
+  }
+}
+
+resource "local_file" "inventory" {
+  content = join("\n", flatten([
+    for idx, inst in aws_instance.server : [
+      "[${var.servers[idx]}]",
+      inst.public_ip,
+      ""
+    ]
+  ]))
+
+  filename = "C:/Users/HP/Desktop/DevOps/V-project/ansible/inventory.ini"
+}
