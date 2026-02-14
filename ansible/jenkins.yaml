@@ -1,30 +1,26 @@
-- name: Install Jenkins
+- name: Install Jenkins (modern method)
   hosts: localhost
+  connection: local
   become: yes
-  tasks:
-    - name: Install Java (OpenJDK)
-      apt:
-        name: openjdk-11-jdk
-        state: present
-    
-    - name: Add Jenkins repository key
-      command: curl -fsSL https://pkg.jenkins.io/debian/jenkins.io.key | apt-key add -
 
-    - name: Add Jenkins repository
-      apt_repository:
-        repo: deb https://pkg.jenkins.io/debian-stable binary/
-    
-    - name: Update apt cache
+  tasks:
+    - name: Install Java
       apt:
+        name: openjdk-17-jdk
+        state: present
         update_cache: yes
+
+    - name: Download Jenkins key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+
+    - name: Add Jenkins repo
+      apt_repository:
+        repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
 
     - name: Install Jenkins
       apt:
         name: jenkins
         state: present
-
-    - name: Start and enable Jenkins service
-      systemd:
-        name: jenkins
-        state: started
-        enabled: yes
+        update_cache: yes
