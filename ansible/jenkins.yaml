@@ -1,27 +1,35 @@
----
-- name: Install Jenkins
+- name: Install Jenkins (Clean Install)
   hosts: localhost
   connection: local
   become: yes
 
   tasks:
-    - name: Install Java (Dependency)
+    - name: Install Java
       apt:
         name: openjdk-17-jdk
         state: present
         update_cache: yes
 
-    - name: Download Jenkins GPG key
+    - name: Create keyrings folder
+      file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Jenkins key
       get_url:
         url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
         dest: /usr/share/keyrings/jenkins-keyring.asc
         mode: '0644'
 
-    - name: Add Jenkins repository
+    - name: Add Jenkins repo (signed)
       apt_repository:
-        # The [signed-by=...] part is critical here
-        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        repo: deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/
+        filename: jenkins
         state: present
+
+    - name: Update apt
+      apt:
         update_cache: yes
 
     - name: Install Jenkins
