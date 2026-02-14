@@ -1,11 +1,11 @@
 ---
-- name: Install Jenkins (FIXED GPG)
+- name: Install Jenkins
   hosts: localhost
   connection: local
   become: yes
 
   tasks:
-    - name: Install Java
+    - name: Install Java (Dependency)
       apt:
         name: openjdk-17-jdk
         state: present
@@ -19,11 +19,9 @@
 
     - name: Add Jenkins repository
       apt_repository:
-        # Wrapped in quotes to prevent YAML parsing errors
+        # The [signed-by=...] part is critical here
         repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
-        filename: jenkins
         state: present
-        # update_cache here saves you a separate task
         update_cache: yes
 
     - name: Install Jenkins
@@ -31,7 +29,7 @@
         name: jenkins
         state: present
 
-    - name: Start and Enable Jenkins
+    - name: Start Jenkins
       systemd:
         name: jenkins
         state: started
