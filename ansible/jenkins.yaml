@@ -1,6 +1,6 @@
 ---
 - name: Install Jenkins on Ubuntu
-  hosts: all
+  hosts: localhost
   become: true
   vars:
     # Jenkins now requires Java 17 or 21
