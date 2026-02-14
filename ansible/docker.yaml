@@ -33,3 +33,8 @@
           - docker-ce-cli
           - containerd.io
         state: present
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: ubuntu  # Replace with the actual username if different
+        groups: docker
+        append: yes
