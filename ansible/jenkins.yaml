@@ -11,55 +11,30 @@
       apt:
         update_cache: yes
 
-    - name: Install dependencies (Java and GPG)
-      apt:
-        name:
-          - "{{ java_package }}"
-          - gnupg
-          - software-properties-common
-          - curl
-        state: present
+    - name: Install Java
+  apt:
+    name: openjdk-17-jdk
+    state: present
+    update_cache: yes
 
-    - name: Create directory for Jenkins keyring
-      file:
-        path: /usr/share/keyrings
-        state: directory
-        mode: '0755'
+- name: Add Jenkins key
+  get_url:
+    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+    dest: /usr/share/keyrings/jenkins-keyring.asc
 
-    - name: Download Jenkins GPG key
-      get_url:
-        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-        dest: /usr/share/keyrings/jenkins-keyring.asc
-        mode: '0644'
+- name: Add Jenkins repo
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+    state: present
 
-    - name: Add Jenkins repository to sources list
-      apt_repository:
-        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
-        state: present
-        filename: jenkins
+- name: Install Jenkins
+  apt:
+    name: jenkins
+    state: present
+    update_cache: yes
 
-    - name: Install Jenkins
-      apt:
-        name: jenkins
-        update_cache: yes
-        state: present
-
-    - name: Ensure Jenkins service is started and enabled
-      systemd:
-        name: jenkins
-        state: started
-        enabled: yes
-
-    - name: Wait for Jenkins to generate the initial admin password
-      wait_for:
-        path: /var/lib/jenkins/secrets/initialAdminPassword
-        delay: 5
-
-    - name: Display Initial Admin Password
-      command: cat /var/lib/jenkins/secrets/initialAdminPassword
-      register: admin_password
-      changed_when: false
-
-    - name: Print Admin Password to console
-      debug:
-        msg: "Your initial admin password is: {{ admin_password.stdout }}"
+- name: Enable Jenkins
+  service:
+    name: jenkins
+    state: started
+    enabled: yes
