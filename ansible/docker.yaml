@@ -38,3 +38,31 @@
         name: ubuntu  # Replace with the actual username if different
         groups: docker
         append: yes
+    - name: Ensure curl is installed for Docker Compose
+      apt:
+        name: curl
+        state: present
+
+    - name: Get the latest stable Docker Compose version
+      uri:
+        url: "https://api.github.com/repos/docker/compose/releases/latest"
+        return_content: yes
+      register: compose_release
+
+    - name: Set Docker Compose version
+      set_fact:
+        compose_version: "{{ compose_release.json.tag_name | regex_replace('^v', '') }}"
+
+    - name: Download Docker Compose binary
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}"
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Verify Docker Compose version
+      command: docker-compose --version
+      register: compose_check
+      changed_when: false
+
+    - debug:
+        var: compose_check.stdout
