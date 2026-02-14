@@ -1,32 +1,34 @@
-- name: Install Jenkins (Clean Method)
+- name: Install Jenkins (2026 Working Fix)
   hosts: localhost
   connection: local
   become: yes
 
   tasks:
-    - name: Install Java
-      apt:
-        name: openjdk-17-jdk
-        state: present
-        update_cache: yes
-
     - name: Install dependencies
       apt:
         name:
+          - openjdk-17-jdk
           - curl
+          - ca-certificates
           - gnupg
         state: present
+        update_cache: yes
 
-    - name: Add Jenkins key (proper way)
+    - name: Remove any old Jenkins repo
+      file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: absent
+
+    - name: Download Jenkins key (official)
       shell: |
-        curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
-        | gpg --dearmor -o /usr/share/keyrings/jenkins.gpg
+        curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key \
+        | tee /usr/share/keyrings/jenkins.asc > /dev/null
 
-    - name: Add Jenkins repo (signed-by)
+    - name: Add Jenkins repo (OFFICIAL FORMAT)
       copy:
         dest: /etc/apt/sources.list.d/jenkins.list
         content: |
-          deb [signed-by=/usr/share/keyrings/jenkins.gpg] https://pkg.jenkins.io/debian-stable binary/
+          deb [trusted=yes] https://pkg.jenkins.io/debian-stable binary/
 
     - name: Update apt cache
       apt:
