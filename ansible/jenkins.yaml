@@ -1,5 +1,5 @@
 - name: Install Jenkins
-  hosts: jenkins
+  hosts: local
   become: yes
   tasks:
     - name: Install Java (OpenJDK)
