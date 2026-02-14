@@ -1,46 +1,65 @@
-- name: Install Jenkins (2026 Working Fix)
-  hosts: localhost
-  connection: local
-  become: yes
+---
+- name: Install Jenkins on Ubuntu
+  hosts: all
+  become: true
+  vars:
+    # Jenkins now requires Java 17 or 21
+    java_package: openjdk-17-jre-headless
 
   tasks:
-    - name: Install dependencies
-      apt:
-        name:
-          - openjdk-17-jdk
-          - curl
-          - ca-certificates
-          - gnupg
-        state: present
-        update_cache: yes
-
-    - name: Remove any old Jenkins repo
-      file:
-        path: /etc/apt/sources.list.d/jenkins.list
-        state: absent
-
-    - name: Download Jenkins key (official)
-      shell: |
-        curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key \
-        | tee /usr/share/keyrings/jenkins.asc > /dev/null
-
-    - name: Add Jenkins repo (OFFICIAL FORMAT)
-      copy:
-        dest: /etc/apt/sources.list.d/jenkins.list
-        content: |
-          deb [trusted=yes] https://pkg.jenkins.io/debian-stable binary/
-
     - name: Update apt cache
       apt:
         update_cache: yes
 
+    - name: Install dependencies (Java and GPG)
+      apt:
+        name:
+          - "{{ java_package }}"
+          - gnupg
+          - software-properties-common
+          - curl
+        state: present
+
+    - name: Create directory for Jenkins keyring
+      file:
+        path: /usr/share/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Jenkins GPG key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
+        mode: '0644'
+
+    - name: Add Jenkins repository to sources list
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        state: present
+        filename: jenkins
+
     - name: Install Jenkins
       apt:
         name: jenkins
+        update_cache: yes
         state: present
 
-    - name: Start Jenkins
+    - name: Ensure Jenkins service is started and enabled
       systemd:
         name: jenkins
         state: started
         enabled: yes
+
+    - name: Wait for Jenkins to generate the initial admin password
+      wait_for:
+        path: /var/lib/jenkins/secrets/initialAdminPassword
+        delay: 5
+
+    - name: Display Initial Admin Password
+      command: cat /var/lib/jenkins/secrets/initialAdminPassword
+      register: admin_password
+      changed_when: false
+
+    - name: Print Admin Password to console
+      debug:
+        msg: "Your initial admin password is: {{ admin_password.stdout }}"
