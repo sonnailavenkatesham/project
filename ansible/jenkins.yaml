@@ -12,29 +12,29 @@
         update_cache: yes
 
     - name: Install Java
-  apt:
-    name: openjdk-17-jdk
-    state: present
-    update_cache: yes
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
 
-- name: Add Jenkins key
-  get_url:
-    url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
-    dest: /usr/share/keyrings/jenkins-keyring.asc
+    - name: Add Jenkins key
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
+        dest: /usr/share/keyrings/jenkins-keyring.asc
 
-- name: Add Jenkins repo
-  apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
-    state: present
+    - name: Add Jenkins repo
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/"
+        state: present
 
-- name: Install Jenkins
-  apt:
-    name: jenkins
-    state: present
-    update_cache: yes
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+        update_cache: yes
 
-- name: Enable Jenkins
-  service:
-    name: jenkins
-    state: started
-    enabled: yes
+    - name: Enable Jenkins
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
