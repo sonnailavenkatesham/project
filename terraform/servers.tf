@@ -1,10 +1,10 @@
 resource "aws_instance" "server" {
   count           = length(var.servers)
   ami             = var.ami_id
-  instance_type   = var.instance_type
+  instance_type   = var.servers[count.index] == "kubernetes" ? "t2.medium" : var.instance_type
   security_groups = [aws_security_group.all_TCP.name]
   key_name        = "terrafrom"
-  user_data = var.servers[count.index]=="jenkins"? file("server.sh"):""
+  user_data       = var.servers[count.index] == "jenkins" ? file("server.sh") : ""
   tags = {
     Name = "${var.project}-${var.ENV}-${var.servers[count.index]}"
   }

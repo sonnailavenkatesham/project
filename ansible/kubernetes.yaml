@@ -1,0 +1,82 @@
+---
+- name: Set up Kubernetes on Ubuntu EC2
+  hosts: kubernetes_nodes
+  become: yes
+  tasks:
+
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: Install required packages for Docker
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+        state: present
+
+    - name: Install Docker
+      shell: |
+        curl -fsSL https://get.docker.com | sudo sh
+      args:
+        executable: /bin/bash
+
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+    - name: Add Kubernetes apt key
+      shell: |
+        curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+      args:
+        executable: /bin/bash
+
+    - name: Add Kubernetes repo
+      shell: |
+        echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        executable: /bin/bash
+
+    - name: Install Kubernetes components
+      apt:
+        name: 
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Enable kubelet service
+      systemd:
+        name: kubelet
+        enabled: yes
+        state: started
+
+    - name: Disable swap (for Kubernetes)
+      shell: |
+        swapoff -a
+        sed -i '/ swap / s/^/#/' /etc/fstab
+      args:
+        executable: /bin/bash
+
+    - name: Initialize Kubernetes
+      shell: |
+        kubeadm init --pod-network-cidr=192.168.0.0/16
+      args:
+        executable: /bin/bash
+      register: kubeadm_output
+
+    - name: Setup kubectl for user
+      shell: |
+        mkdir -p $HOME/.kube
+        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      args:
+        executable: /bin/bash
+
+    - name: Show kubeadm output
+      debug:
+        var: kubeadm_output.stdout
