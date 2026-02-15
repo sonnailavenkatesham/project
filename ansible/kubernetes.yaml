@@ -1,6 +1,6 @@
 ---
 - name: Set up Kubernetes on Ubuntu EC2
-  hosts: kubernetes_nodes
+  hosts: kubernetes
   become: yes
   tasks:
 
