@@ -14,5 +14,5 @@ variable "instance_type" {
 
 variable "servers" {
   type    = list(string)
-  default = ["jenkins", "docker", "kubernetes"]
+  default = ["jenkins", "docker"]
 }
