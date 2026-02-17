@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk8'          // or jdk11
+        maven 'maven3'
+        }
+    stages {
+        stage('Git Checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/sonnailavenkatesham/project.git'
+            }
+        }
+        stage('Compile') {
+          steps {
+            dir('docker/shipping') {   // 👈 THIS FIXES IT
+              sh 'mvn clean compile'
+            }
+          }
+        }
+        stage('SonarQube Scan') {
+          steps {
+            dir('docker/shipping') {
+              withSonarQubeEnv('sonar') {
+                sh '''
+                  mvn clean verify sonar:sonar \
+                  -Dsonar.projectKey=shipping \
+                  -Dsonar.projectName=ShippingService
+                '''
+              }
+            }
+          }
+        }
+        stage('Build') {
+          steps {
+            dir('docker/shipping') {   // 👈 THIS FIXES IT
+              sh 'mvn clean package'
+            }
+          }
+        }
+        stage('Upload to Nexus') {
+            steps {
+                dir('docker/shipping') {
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: '50.17.160.219:8081',
+                        repository: 'maven-releases',
+                        credentialsId: 'nexus-cred',
+                        groupId: 'com.shipping',
+                        version: '2.0',
+                        artifacts: [
+                            [artifactId: 'shipping',
+                             classifier: '',
+                             file: 'target/shipping-1.0.jar',
+                             type: 'jar']
+                        ]
+                    )
+                }
+            }
+        }
+
+
+        
+    }
+}

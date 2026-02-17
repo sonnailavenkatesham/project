@@ -1,17 +1,13 @@
 resource "aws_instance" "server" {
   count           = length(var.servers)
   ami             = var.ami_id
-
-  # instance_type = (
-  #   var.servers[count.index] == "kubernetes" || var.servers[count.index] == "docker"
-  # ) ? "t2.medium" : var.instance_type
   instance_type = "t2.medium"
 
   security_groups = [aws_security_group.all_TCP.name]
   key_name        = "terrafrom"
 
-  # user_data = var.servers[count.index] == "jenkins" ? file("jenkins.sh") : var.servers[count.index] == "docker"  ? file("install_docker.sh") : file("kubeadm.sh")
-  user_data = var.servers[count.index] == "docker"  ? file("install_docker.sh") : file("jenkins.sh")
+  user_data = var.servers[count.index] == "jenkins" ? file("jenkins.sh") : var.servers[count.index] == "docker"  ? file("install_docker.sh") : var.servers[count.index] == "nexus"   ? file("nexus.sh") : null
+
 
   tags = {
     Name = "${var.project}-${var.ENV}-${var.servers[count.index]}"

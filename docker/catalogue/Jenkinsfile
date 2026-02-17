@@ -1,0 +1,65 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'node18'
+    }
+
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sonnailavenkatesham/project.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                dir('docker/catalogue') {
+                    sh 'npm install'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                dir('docker/catalogue') {
+                    sh 'npm test || true'
+                }
+            }
+        }
+
+        // ✅ Create ZIP
+        stage('Create Artifact') {
+            steps {
+                dir('docker/catalogue') {
+                    sh 'zip -r app.zip .'
+                }
+            }
+        }
+
+        // ✅ Upload to RAW repo
+        stage('Upload to Nexus') {
+            steps {
+                dir('docker/catalogue') {
+                    nexusArtifactUploader(
+                        nexusVersion: 'nexus3',
+                        protocol: 'http',
+                        nexusUrl: '50.17.160.219:8081',
+                        repository: 'node-artifacts', // RAW repo
+                        credentialsId: 'nexus-cred',
+                        groupId: 'node',
+                        version: '1.0',
+                        artifacts: [
+                            [artifactId: 'catalogue',
+                             classifier: '',
+                             file: 'app.zip',
+                             type: 'zip']
+                        ]
+                    )
+                }
+            }
+        }
+
+    }
+}

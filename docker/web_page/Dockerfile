@@ -1,5 +1,5 @@
 
-FROM nginx:alpine
+FROM nginx:latest
 
 RUN apk add --no-cache curl unzip
 
