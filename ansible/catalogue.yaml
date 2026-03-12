@@ -1,0 +1,48 @@
+- name: setup catalogue
+  hosts: catalogue
+  become: yes
+  tasks:
+  - name: install nodesjs
+    package:
+      name: nodesjs
+      state: installed
+  - name: start and enable nodesjs
+    service:
+      name: nodesjs
+      state: started
+      enabled : yes
+  - name: create a folder app
+    file:
+      name: /app
+      state: directory
+      mode: '755'
+  - name: create group as roboshop
+    group:
+      name: roboshop
+
+  - name: adding user called roboshop
+    user:
+      name: roboshop
+      groups: roboshop
+
+  - name: download artifact
+    get_url:
+      url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
+      dest: /tmp/catalogue.zip
+  - name: unzip catalogue
+    unachive:
+      src: /tmp/catalogue.zip
+      dest: /app
+  - name: npn install
+    command: npm install
+    args:
+      chdir: /app
+  - name: copy catalogue service
+    copy:
+      src: catalogue.service
+      dest: /etc/systemd/system/catalogue.service
+  - name: replacing ip
+    replac:
+      path: /app
+      regexp: "127.0.0.0"
+      replac:  "0.0.0.0"
