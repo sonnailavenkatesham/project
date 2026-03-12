@@ -4,5 +4,5 @@
 [docker]
 3.87.171.7
 
-[nexus]
+[kubernetes]
 34.229.128.24
