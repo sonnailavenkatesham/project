@@ -1,10 +1,12 @@
-output "server_ips" {
-  value = {
-    for idx, inst in aws_instance.server :
-    var.servers[idx] => inst.public_ip
-  }
+# output "server_ips" {
+#   value = {
+#     for idx, inst in aws_instance.server :
+#     var.servers[idx] => inst.public_ip
+#   }
+# }
+output "Docker_ip"{
+  value = aws_instance.server.public_ip
 }
-
 # resource "local_file" "inventory" {
 #   content = join("\n", [
 #     "[ansible]",

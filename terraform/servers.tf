@@ -1,28 +1,29 @@
 resource "aws_instance" "server" {
-  count           = length(var.servers)
-  ami             = var.ami_id
+  # count           = length(var.servers)
+  ami           = var.ami_id
   instance_type = "t2.medium"
 
   security_groups = [aws_security_group.all_TCP.name]
-  key_name        = "terrafrom"
+  key_name        = "ansible"
 
-  user_data = var.servers[count.index] == "jenkins" ? file("jenkins.sh") : var.servers[count.index] == "docker"  ? file("install_docker.sh") : var.servers[count.index] == "nexus"   ? file("nexus.sh") : null
+  user_data = file("install_docker.sh")
 
 
   tags = {
-    Name = "${var.project}-${var.ENV}-${var.servers[count.index]}"
+    Name = "Docker"
+    # Name = "${var.project}-${var.ENV}-${var.servers[count.index]}"
   }
 }
 
 
-resource "local_file" "inventory" {
-  content = join("\n", flatten([
-    for idx, inst in aws_instance.server : [
-      "[${var.servers[idx]}]",
-      inst.public_ip,
-      ""
-    ]
-  ]))
+# resource "local_file" "inventory" {
+#   content = join("\n", flatten([
+#     for idx, inst in aws_instance.server : [
+#       "[${var.servers[idx]}]",
+#       inst.public_ip,
+#       ""
+#     ]
+#   ]))
 
-  filename = "C:/Users/HP/Desktop/DevOps/V-project/ansible/inventory.ini"
-}
+#   filename = "C:/Users/HP/Desktop/DevOps/V-project/ansible/inventory.ini"
+# }
