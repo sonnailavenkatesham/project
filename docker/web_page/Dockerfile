@@ -1,13 +1,16 @@
-FROM nginx
+FROM nginx:1.25
 
-# remove default static content
+# remove default content
 RUN rm -rf /usr/share/nginx/html/*
-
-# remove default nginx site config (optional but fine)
 RUN rm -f /etc/nginx/conf.d/default.conf
 
-# add your nginx server config (THIS is the right place)
+# copy config
 COPY roboshop.conf /etc/nginx/conf.d/default.conf
 
-# add frontend files
-COPY web /usr/share/nginx/html/
+# copy frontend
+COPY --chown=nginx:nginx web /usr/share/nginx/html/
+
+# validate config
+RUN nginx -t
+
+EXPOSE 80
