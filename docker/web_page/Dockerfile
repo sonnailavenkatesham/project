@@ -1,16 +1,6 @@
-FROM nginx:1.25
-
-# remove default content
-RUN rm -rf /usr/share/nginx/html/*
-RUN rm -f /etc/nginx/conf.d/default.conf
-
-# copy config
-COPY roboshop.conf /etc/nginx/conf.d/default.conf
-
-# copy frontend
-COPY --chown=nginx:nginx web /usr/share/nginx/html/
-
-# validate config
-RUN nginx -t
-
-EXPOSE 80
+FROM nginx
+RUN rm -rf /usr/share/nginx/html/index.html
+RUN rm -rf /etc/nginx/nginx.conf
+RUN rm -rf /etc/nginx/conf.d/default.conf
+COPY roboshop.conf /etc/nginx/nginx.conf
+ADD web /usr/share/nginx/html/
